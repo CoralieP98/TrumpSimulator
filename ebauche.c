@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 //constantes
 #define MAX_DESCRP_COURTE 20
@@ -56,9 +57,17 @@ void afficheListe(STEP *liste);
 void printMenu(void);
 void afficheJoueur(PLAYER *joueur);
 PLAYER *chargerJoueurTxt(char *nomFichier);
+void insererTete(STEP** liste, STEP* nouv);
+void insererAleatoire(STEP** liste, STEP* etape);
+void appliquerImpact(PLAYER* joueur, STEP* e);
+int verifierDefaite(PLAYER* joueur);
+void afficherJauges(PLAYER* joueur);
+void jeu(PLAYER* joueur, STEP* liste);
+STEP* retirerTete(STEP** liste);
+
 
 int main(void){
-
+    srand(time(NULL));
     STEP *liste = NULL;
     PLAYER *joueur=NULL;
     
@@ -84,15 +93,15 @@ int main(void){
         case '2':
             afficheJoueur(joueur);
             break;
+        case '3':
+            jeu(joueur,liste);
+            break;
         default:
-			printf("Commande inconnue\n");
-			break;
-
+            printf("Commande inconnue\n");
+            break;
+        }
     }
-
-
-
-}
+    return 0;
 }
 
 
@@ -104,7 +113,7 @@ void printMenu(void)
 	printf("0 - exit \n");
     printf("1 - affichier toutes les étapes \n");
     printf("2 - afficher les joeurs\n");
-	printf("3 - TBD\n");
+	printf("3 - Jeu Dev Version\n");
 	printf("4 - TBD\n");
 	printf("5 - TBD\n");
 }
@@ -126,14 +135,14 @@ PLAYER *chargerJoueurTxt(char *nomFichier){
     while (fgets(lineBuffer, LINE_SIZE, f) != NULL)
 	{
 		new = recupererLigneJoueur(lineBuffer);
-		joueur = insertionAlphaJoueur(joueur, new);
+		if (new != NULL)
+			joueur = insertionAlphaJoueur(joueur, new);
 	}
 
 	fclose(f);
 	return joueur;
-
-
 }
+
 /* Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure que le programme peut comprendre */
 PLAYER *recupererLigneJoueur(char *ligne)
 {
@@ -143,39 +152,57 @@ PLAYER *recupererLigneJoueur(char *ligne)
 		printf("Erreur allocation memoire dans recupererLigneJoueur()\n");
 		return NULL;
 	}
-	ligne[strlen(ligne) - 1] = '\0';
+	memset(new, 0, sizeof *new);
+
+	/* trim newline */
+	size_t len = strlen(ligne);
+	if (len > 0 && ligne[len-1] == '\n')
+		ligne[len-1] = '\0';
+	
+	if (ligne[0] == '\0') { /* ligne vide */
+		free(new);
+		return NULL;
+	}
 
 	char separator[2] = ";";
-	char *token = strtok(ligne, separator);
-	//strcpy(new->id, token);
-    char *fin;
+	char *token = strtok(ligne, separator); // eco (no id field)
+	if (!token) goto fail;
+	new->eco = atoi(token);
 
 	token = strtok(NULL, separator);
-	if (token) new->eco = atoi(token);
-
-    token = strtok(NULL, separator);
-	if (token) new->social = atoi(token);
+	if (!token) goto fail;
+	new->social = atoi(token);
 
 	token = strtok(NULL, separator);
-	if (token) new->environ = atoi(token);
+	if (!token) goto fail;
+	new->environ = atoi(token);
+
 	token = strtok(NULL, separator);
-	if (token) new->folie = atoi(token);
+	if (!token) goto fail;
+	new->folie = atoi(token);
 
-    token = strtok(NULL, separator);
-	if (token)
-		strncpy(new->nom, token, MAX_NOM - 1);
-	new->nom[MAX_NOM - 1] = '\0';
+	token = strtok(NULL, separator);
+	if (!token) goto fail;
+	strncpy(new->nom, token, MAX_NOM-1);
+	new->nom[MAX_NOM-1] = '\0';
 
-    for(int i = 0; i < 49; i++) {
-        token = strtok(NULL, separator);
-        new->avancement[i] = atoi(token);
-    }
+	/* read avancement fields if present, otherwise leave at 0 */
+	for(int i = 0; i < NB_MAX_ETAPES; ++i) {
+		token = strtok(NULL, separator);
+		if (token)
+			new->avancement[i] = atoi(token);
+		else
+			new->avancement[i] = 0;
+	}
+
+	new->suiv = NULL;
+
 	return new;
+
+fail:
+	free(new);
+	return NULL;
 }
-
-
-
-/* Chargement du fichier étapes dans une liste chainée */
 STEP *chargerTxt(char *nomFichier)
 {
 	printf("chargement du fichier %s\n", nomFichier);
@@ -211,40 +238,55 @@ STEP *recupererLigne(char *ligne)
 		printf("Erreur allocation memoire dans recupererLigne()\n");
 		return NULL;
 	}
-	ligne[strlen(ligne) - 1] = '\0';
+	memset(new,0,sizeof *new);
+
+	/* trim newline */
+	size_t len = strlen(ligne);
+	if (len > 0 && ligne[len-1] == '\n')
+		ligne[len-1] = '\0';
+	if (ligne[0] == '\0') {
+		free(new);
+		return NULL;
+	}
 
 	char separator[2] = ";";
 	char *token = strtok(ligne, separator);
-	//strcpy(new->id, token);
-    char *fin;
-    new->id=strtol(token, &fin, 10);
+	if (!token) goto fail;
+	char *fin;
+	new->id = strtol(token, &fin, 10);
 
 	token = strtok(NULL, separator);
-	//strcpy(new->impactEco, token);
-    new->impactEco=strtol(token, &fin, 10);
+	if (!token) goto fail;
+	new->impactEco = strtol(token, &fin, 10);
 
 	token = strtok(NULL, separator);
+	if (!token) goto fail;
 	new->impactSocial = atoi(token);
 
 	token = strtok(NULL, separator);
+	if (!token) goto fail;
 	new->impactEnviron = atoi(token);
 
 	token = strtok(NULL, separator);
+	if (!token) goto fail;
 	new->impactFolie = atoi(token);
 
-    token = strtok(NULL, separator);
-	if (token)
-		strncpy(new->descriptionCourte, token, MAX_DESCRP_COURTE - 1);
-	new->descriptionCourte[MAX_DESCRP_COURTE - 1] = '\0';
+	token = strtok(NULL, separator);
+	if (!token) goto fail;
+	strncpy(new->descriptionCourte, token, MAX_DESCRP_COURTE-1);
+	new->descriptionCourte[MAX_DESCRP_COURTE-1] = '\0';
 
-    token = strtok(NULL, separator);
-	if (token)
-		strncpy(new->descpritionImpact, token, MAX_DESCRP - 1);
-	new->descpritionImpact[MAX_DESCRP - 1] = '\0';
+	token = strtok(NULL, separator);
+	if (!token) goto fail;
+	strncpy(new->descpritionImpact, token, MAX_DESCRP-1);
+	new->descpritionImpact[MAX_DESCRP-1] = '\0';
 
 	new->suiv = NULL;
-
 	return new;
+
+fail:
+	free(new);
+	return NULL;
 }
 //Insertion des strucutures joueur par ordre alphabétique
 PLAYER *insertionAlphaJoueur(PLAYER *liste, PLAYER *nouvelSTEP)
@@ -405,4 +447,124 @@ void afficheJoueur(PLAYER *joueur)
          }
 		courant = courant->suiv;
 	}
+}
+
+void insererAleatoire(STEP** liste, STEP* etape) {
+    if (*liste == NULL) {
+        *liste = etape;
+        etape->suiv = NULL;
+        return;
+    }
+
+    int position = rand() % NB_MAX_ETAPES;
+
+    STEP* courant = *liste;
+    STEP* precedent = NULL;
+    int i = 0;
+
+    while (courant != NULL && i < position) {
+        precedent = courant;
+        courant = courant->suiv;
+        i++;
+    }
+
+    if (precedent == NULL) {
+        etape->suiv = *liste;
+        *liste = etape;
+    } else {
+        precedent->suiv = etape;
+        etape->suiv = courant;
+    }
+}
+
+void insererTete(STEP** liste, STEP* nouv) {
+    nouv->suiv = *liste;
+    *liste = nouv;
+}
+
+//================= LOGIQUE JEU =================
+
+void appliquerImpact(PLAYER* joueur, STEP* e) {
+    joueur->eco += e->impactEco;
+    joueur->social += e->impactSocial;
+    joueur->environ += e->impactEnviron;
+    joueur->folie += e->impactFolie;
+
+    if (joueur->eco < 0) joueur->eco = 0;
+    if (joueur->social < 0) joueur->social = 0;
+    if (joueur->environ < 0) joueur->environ = 0;
+}
+
+int verifierDefaite(PLAYER* joueur) {
+    if (joueur->eco <= 0) return 1;
+    if (joueur->social <= 0) return 1;
+    if (joueur->environ <= 0) return 1;
+    if (joueur->folie >= 100) return 1;
+    return 0;
+}
+
+void afficherJauges(PLAYER* joueur) {
+    printf("\n=== Jauges ===\n");
+    printf("Eco : %d\n", joueur->eco);
+    printf("Social : %d\n", joueur->social);
+    printf("Environnement : %d\n", joueur->environ);
+    printf("Folie : %d\n", joueur->folie);
+}
+STEP* retirerTete(STEP** liste) {
+    if (*liste == NULL) return NULL;
+
+    STEP* tmp = *liste;
+    *liste = (*liste)->suiv;
+    tmp->suiv = NULL;
+    return tmp;
+}
+
+
+void jeu(PLAYER* joueur, STEP* liste){
+
+
+     while (!verifierDefaite(joueur)) {
+
+        if (liste == NULL || liste->suiv == NULL) {
+            printf("Plus assez d'étapes.\n");
+            break;
+        }
+
+        STEP* choix1 = retirerTete(&liste);
+        STEP* choix2 = retirerTete(&liste);
+
+        printf("\nChoisissez une étape :\n");
+        printf("1 - %s\n", choix1->descriptionCourte);
+        printf("2 - %s\n", choix2->descriptionCourte);
+
+        int choix;
+        scanf("%d", &choix);
+
+        STEP* choisie;
+        STEP* nonChoisie;
+
+        if (choix == 1) {
+            choisie = choix1;
+            nonChoisie = choix2;
+        } else {
+            choisie = choix2;
+            nonChoisie = choix1;
+        }
+
+        printf("\n%s\n", choisie->descpritionImpact);
+
+        appliquerImpact(joueur, choisie);
+
+        joueur->avancement[choisie->id - 1] = 1;
+
+        afficherJauges(joueur);
+
+        insererAleatoire(&liste, nonChoisie);
+
+        free(choisie);
+    }
+
+    printf("\nYou're Fired  %s !\n", joueur->nom);
+
+    
 }
