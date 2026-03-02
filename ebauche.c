@@ -64,7 +64,10 @@ int verifierDefaite(PLAYER* joueur);
 void afficherJauges(PLAYER* joueur);
 void jeu(PLAYER* joueur, STEP* liste);
 STEP* retirerTete(STEP** liste);
-
+STEP *chargerTxt(char *nomFichier);
+PLAYER *choixJoueur(char pseudo[MAX_NOM], PLAYER *listeJoueurs);
+void savePLAYERTxt(PLAYER *liste, char *nomFichier);
+void saveETAPESxt(STEP *liste, char *nomFichier);
 
 int main(void){
     srand(time(NULL));
@@ -85,6 +88,8 @@ int main(void){
 		case '0':
 		case 'o':
 		case 'O':
+			savePLAYERTxt(joueur,NOM_FICHIER_TXT_PLAYERS);
+			saveETAPESxt(liste,NOM_FICHIER_TXT_ETAPES);
 			exit = 1;
             break;
         case '1':
@@ -94,7 +99,11 @@ int main(void){
             afficheJoueur(joueur);
             break;
         case '3':
-            jeu(joueur,liste);
+			char nom[MAX_NOM];
+			printf("Saisissez votre pseudo : ");
+			scanf(" %s", nom);
+			
+            jeu(choixJoueur(nom,joueur),liste);
             break;
         default:
             printf("Commande inconnue\n");
@@ -104,8 +113,88 @@ int main(void){
     return 0;
 }
 
+PLAYER *choixJoueur(char pseudo[MAX_NOM], PLAYER *listeJoueurs){
 
+	PLAYER *courant=NULL;
+	courant=listeJoueurs;
+	while (courant != NULL)
+	{
+		if(strcmp(pseudo, courant->nom)==0){
+			return courant;
+		}
+		courant=courant->suiv;
+		
+		
 
+	}
+	printf("Aucun joueur trouvé, création d'un nouveau joueur !\n");
+	PLAYER *nouveau=NULL;
+	nouveau = (PLAYER *)malloc(sizeof(PLAYER));
+	strcpy(nouveau->nom,pseudo);
+	nouveau->eco=50;
+	nouveau->environ=50;
+	nouveau->folie=0;
+	nouveau->social=50;
+	printf("tout va bien \n");
+	for(int i=0;i<NB_MAX_ETAPES;i++){
+		nouveau->avancement[i]=0;
+	}
+	printf("tout va bien \n");
+	//courant->suiv=nouveau;
+	nouveau->suiv=listeJoueurs;
+	printf("tout va bien \n");
+	return nouveau;
+	
+	
+}
+
+void savePLAYERTxt(PLAYER *liste, char *nomFichier)
+{
+	FILE *f = NULL;
+	f = fopen(nomFichier, "w");
+	if (f == NULL)
+	{
+		printf("erreur creation de fichier %s sauvgarder annulee", nomFichier);
+		return;
+	}
+	PLAYER *courant = liste;
+	while (courant != NULL) /* tant qu'il reste des elements */
+	{
+
+		fprintf(f, "%d;%d;%d;%d;%s;", courant->eco, courant->social, courant->environ, courant->folie, courant->nom);
+		for(int i=0;i<NB_MAX_ETAPES;i++){
+			fprintf(f,"0;");
+		}
+		fprintf(f,"\n");
+		/* on avance vers l'element suivant */
+		courant = courant->suiv;
+	}
+	fclose(f);
+}
+
+void saveETAPESxt(STEP *liste, char *nomFichier)
+{
+	FILE *f = NULL;
+	f = fopen(nomFichier, "w");
+	if (f == NULL)
+	{
+		printf("erreur creation de fichier %s sauvgarder annulee", nomFichier);
+		return;
+	}
+	STEP *courant = liste;
+	while (courant != NULL) /* tant qu'il reste des elements */
+	{
+
+		fprintf(f, "%d;%d;%d;%d;%d,%s;%s;", courant->id, courant->impactEco, courant->impactSocial, courant->impactEnviron, courant->impactFolie,courant->descriptionCourte,courant->descpritionImpact);
+		for(int i=0;i<NB_MAX_ETAPES;i++){
+			fprintf(f,"0;");
+		}
+		fprintf(f,"\n");
+		/* on avance vers l'element suivant */
+		courant = courant->suiv;
+	}
+	fclose(f);
+}
 
 void printMenu(void)
 {
@@ -523,7 +612,7 @@ STEP* retirerTete(STEP** liste) {
 void jeu(PLAYER* joueur, STEP* liste){
 
 
-     while (!verifierDefaite(joueur)) {
+     while (verifierDefaite(joueur)!=1) {
 
         if (liste == NULL || liste->suiv == NULL) {
             printf("Plus assez d'étapes.\n");
@@ -568,3 +657,4 @@ void jeu(PLAYER* joueur, STEP* liste){
 
     
 }
+

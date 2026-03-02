@@ -1,5 +1,10 @@
-1;10;5;2.5;3;Construction usine;Creation d emplois mais pollution locale
-2;4;8;1.2;1;Parc public;Ameliore qualite de vie et biodiversite
-3;7;3;4.8;6;Centre commercial;Augmente economie mais trafic important
-4;2;9;0.5;0;Ecole primaire;Impact social tres positif faible impact environnemental
-5;9;4;3.7;8;Festival musical;Boost economique temporaire nuisances sonores
+1;10;5;2;3,Construction usine;Creation d emplois mais pollution locale;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+1;10;5;2;3,Construction usine;Creation d emplois mais pollution locale;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+2;4;8;1;1,Parc public;Ameliore qualite de vie et biodiversite;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+2;4;8;1;1,Parc public;Ameliore qualite de vie et biodiversite;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+3;7;3;4;6,Centre commercial;Augmente economie mais trafic important;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+3;7;3;4;6,Centre commercial;Augmente economie mais trafic important;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+4;2;9;0;0,Ecole primaire;Impact social tres positif faible impact environnemental;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+4;2;9;0;0,Ecole primaire;Impact social tres positif faible impact environnemental;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+5;9;4;3;8,Festival musical;Boost economique temporaire nuisances sonores;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+5;9;4;3;8,Festival musical;Boost economique temporaire nuisances sonores;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
