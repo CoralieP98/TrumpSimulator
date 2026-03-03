@@ -203,6 +203,7 @@ fail:
 	free(new);
 	return NULL;
 }
+
 STEP *chargerTxt(char *nomFichier)
 {
 	printf("chargement du fichier %s\n", nomFichier);
@@ -254,6 +255,7 @@ STEP *recupererLigne(char *ligne)
 	if (!token) goto fail;
 	char *fin;
 	new->id = strtol(token, &fin, 10);
+//strol pas necessaire.
 
 	token = strtok(NULL, separator);
 	if (!token) goto fail;
@@ -298,7 +300,7 @@ PLAYER *insertionAlphaJoueur(PLAYER *liste, PLAYER *nouvelSTEP)
 	}
 
 	if (liste == NULL)
-	{ /* cas d'une lsite vide */
+	{ // cas d'une lsite vide
 		nouvelSTEP->suiv = NULL;
 		liste = nouvelSTEP;
 		return liste;
@@ -308,11 +310,11 @@ PLAYER *insertionAlphaJoueur(PLAYER *liste, PLAYER *nouvelSTEP)
 	PLAYER *precedent = NULL;
 	while (courant != NULL)
 	{
-		/* parcour de la liste pour trouver le bon endroit ou inserer */
+		// parcour de la liste pour trouver le bon endroit ou inserer
 		if (strcmp(courant->nom, nouvelSTEP->nom) > 0)
-		{ /* on a trouver le bon endroit */
+		{ // on a trouver le bon endroit
 			if (courant == liste)
-			{ /* ajout debut */
+			{ // ajout debut
 				nouvelSTEP->suiv = liste;
 				liste = nouvelSTEP;
 				return liste;
@@ -325,12 +327,12 @@ PLAYER *insertionAlphaJoueur(PLAYER *liste, PLAYER *nouvelSTEP)
 			}
 		}
 		else
-		{ /* on continue d'avancer */
+		{ //on continue d'avancer
 			precedent = courant;
 			courant = courant->suiv;
 		}
 	}
-	/* ici on est sortie de la boucle => fin de la liste courant == NULL */
+	 //ici on est sortie de la boucle => fin de la liste courant == NULL
 	precedent->suiv = nouvelSTEP;
 	nouvelSTEP->suiv = NULL;
 
@@ -386,6 +388,7 @@ STEP *insertionAlpha(STEP *liste, STEP *nouvelSTEP)
 
 	return liste;
 }
+
 
 //Affiche le contenue d'une structure étape
 void afficheSTEPent(STEP *STEP)

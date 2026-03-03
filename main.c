@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /// define ///
 
@@ -28,7 +29,7 @@ typedef struct action {
 
 typedef struct player {
     int idPlayer;
-    char firstName[30];
+    char firstName[];
     char lastName[7];
 
     int gaugeSocial;
@@ -36,13 +37,20 @@ typedef struct player {
     int gaugeEnviro;
     int gaugeMadness;
 
+    int progression[49];
+
     int temporality;
 
     char password[15];
+    struct player *next;
+
 }PLAYER;
 
 
 /// Prototypes ///
+void printMenu(void);
+void displayAction(ACTION *action);
+void afficheListe(ACTION *list);
 
 void initializePlayer(PLAYER *player);
 void saveProgression(PLAYER *player, FILE *historique);
@@ -51,6 +59,9 @@ ACTION *recupererLigne(char *line);
 ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction);
 
 void displayPlayerStatus(PLAYER *player);
+PLAYER *chargerJoueurTxt(char *nomFichier);
+PLAYER *recupererLigneJoueur(char *line);
+PLAYER *insertionAlphaJoueur(PLAYER *list, PLAYER *newPlayer);
 
 int initializeActions(ACTION *action1, ACTION *action2);
 void vizualiseAction(ACTION *action,int *idAction1, int *idAction2);
@@ -64,19 +75,21 @@ void displayEnding(PLAYER *player, int endingType);
 
 int main(void) {
 
+    srand(time(NULL));
     ACTION *list = NULL;
-    PLAYER *Trump;
+    PLAYER *Trump = NULL;
+
+
+    printf("...chargement des fichiers...\n");
+    list = chargerTxt(NOM_FICHIER_TXT_ETAPES);
+    Trump = chargerJoueurTxt(NOM_FICHIER_TXT_PLAYERS);
 
     int choice;
     int end = 0;
 
-    while (end != -1){
-        printf("#### TRUMP SIMULATOR ####\n");
-        printf("#########################\n");
-        printf(" 1 - Nouvelle Partie ----\n");
-        printf(" 2 - Charger ------------\n");
-        printf(" 3 - Quitter ------------\n");
-        printf("#########################\n");
+    while (end == 0){
+        printMenu();
+
 
         scanf("%d", &choice);
 
@@ -87,6 +100,13 @@ int main(void) {
             case 2:
                 break;
             case 3:
+                afficheListe(list);
+                break;
+            case 4:
+
+                break;
+            case 0:
+                end = 1;
                 break;
             default:
                 break;
@@ -96,6 +116,55 @@ int main(void) {
     return 0;
 }
 
+void printMenu(void)
+{
+    printf("#### TRUMP SIMULATOR ####\n");
+    printf("\n\n\nThis is the Fake News MENU\n");
+    printf("#########################\n");
+    printf("1 - PLAY\n");
+    printf("2 - New Game\n");
+    printf("3 - See the backstages \n"); //afficher toutes les étapes
+    printf("4 - See all players\n");
+    printf("0 - Exit ----\n");
+    printf("#########################\n");
+}
+
+
+//Affiche le contenu d'une liste chainée
+void afficheListe(ACTION *list)
+{
+    ACTION *courant = list;
+    if (list == NULL)
+    {
+        printf("afficheListe impossible sur liste vide\n");
+        return;
+    }
+    while (courant != NULL) /* tant qu'il reste des actions */
+    {
+        displayAction(courant);
+
+        /* on avance vers l'STEPent suivant */
+        courant = courant->next;
+    }
+}
+
+//Affiche le contenue d'une structure étape
+void displayAction(ACTION *action)
+{
+    if (action == NULL)
+    {
+        printf("display action impossible sur action vide\n");
+        return;
+    }
+    printf("|----------------------------------------------------------------------------------|\n");
+    printf("|id : %d|\n",action->idAction);
+    printf("|impact Eco : %d|\n",action->impEco);
+    printf("|impact Social : %d|\n",action->impSocial);
+    printf("|impact Environnement : %d|\n",action->impEnviro);
+    printf("|impact Folie : %d|\n",action->madness);
+    printf("|description action  : %s|\n", action->description);
+    printf("|description impact : %s|\n", action->impDescription);
+}
 
 ACTION *chargerTxt(char *nomFichier)
 {
@@ -116,7 +185,7 @@ ACTION *chargerTxt(char *nomFichier)
     while (fgets(lineBuffer, LINE_SIZE, f) != NULL)
     {
         new = recupererLigne(lineBuffer);
-        list = insertionAlpha(list, new);
+        list = insertionAlphaActions(list, new);
     }
 
     fclose(f);
@@ -147,12 +216,11 @@ ACTION *recupererLigne(char *line)
     char separator[2] = ";";
     char *token = strtok(line, separator);
     if (!token) goto fail;
-    char *fin;
-    new->idAction = strtol(token, &fin, 10);
+    new->idAction = atoi(token);
 
     token = strtok(NULL, separator);
     if (!token) goto fail;
-    new->impEco = strtol(token, &fin, 10);
+    new->impEco = atoi(token);
 
     token = strtok(NULL, separator);
     if (!token) goto fail;
@@ -196,7 +264,7 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
     }
 
     if (list == NULL)
-    { /* cas d'une lsite vide */
+    { /* cas d'une liste vide */
         newAction->next = NULL;
         list = newAction;
         return list;
@@ -237,6 +305,152 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
 
 
 
+
+
+
+
+
+/*Chargement du fichier joueur dans une liste chainée*/
+PLAYER *chargerJoueurTxt(char *nomFichier){
+
+    printf("chargement du fichier %s\n", nomFichier);
+    PLAYER *player = NULL;
+    PLAYER *new = NULL;
+    FILE *f;
+    f = fopen(nomFichier, "r");
+    if (f == NULL)
+    {
+        printf("erreur lecture de fichier %s chargement annulee\n", nomFichier);
+        return NULL;
+    }
+
+    char lineBuffer[LINE_SIZE];
+    while (fgets(lineBuffer, LINE_SIZE, f) != NULL)
+    {
+        new = recupererLigneJoueur(lineBuffer);
+        if (new != NULL)
+            player = insertionAlphaJoueur(player, new);
+    }
+
+    fclose(f);
+    return player;
+}
+
+
+/* Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure que le programme peut comprendre */
+PLAYER *recupererLigneJoueur(char *line)
+{
+    PLAYER *new = malloc(sizeof(PLAYER));
+    if (new == NULL)
+    {
+        printf("Erreur allocation memoire dans recupererLigneJoueur()\n");
+        return NULL;
+    }
+    memset(new, 0, sizeof *new);
+
+    /* trim newline */
+    size_t len = strlen(line);
+    if (len > 0 && line[len-1] == '\n')
+        line[len-1] = '\0';
+
+    if (line[0] == '\0') { /* ligne vide */
+        free(new);
+        return NULL;
+    }
+
+    char separator[2] = ";";
+    char *token = strtok(line, separator); // eco (no id field)
+    if (!token) goto fail;
+    new->idPlayer = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->gaugeEco = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->gaugeSocial = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->gaugeEnviro = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->gaugeMadness = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    strncpy(new->firstName, token, MAX_NOM-1);
+    new->firstName[MAX_NOM-1] = '\0';
+
+    /* read progression fields if present, otherwise leave at 0 */
+    for(int i = 0; i < NB_MAX_ETAPES; ++i) {
+        token = strtok(NULL, separator);
+        if (token)
+            new->progression[i] = atoi(token);
+        else
+            new->progression[i] = 0;
+    }
+
+    new->next = NULL;
+
+    return new;
+
+    fail:
+        free(new);
+    return NULL;
+}
+
+
+//Insertion des strucutures joueur par ordre alphabétique
+PLAYER *insertionAlphaJoueur(PLAYER *list, PLAYER *newPlayer)
+{
+    if (newPlayer == NULL)
+    {
+        printf("Rien a inserer\n");
+        return list;
+    }
+
+    if (list == NULL)
+    { // cas d'une lsite vide
+        newPlayer->next = NULL;
+        list = newPlayer;
+        return list;
+    }
+
+    PLAYER *courant = list;
+    PLAYER *precedent = NULL;
+    while (courant != NULL)
+    {
+        // parcour de la liste pour trouver le bon endroit ou inserer
+        if (courant->idPlayer, newPlayer->idPlayer)
+        { // on a trouver le bon endroit
+            if (courant == list)
+            { // ajout debut
+                newPlayer->next = list;
+                list = newPlayer;
+                return list;
+            }
+            else
+            {
+                precedent->next = newPlayer;
+                newPlayer->next = courant;
+                return list;
+            }
+        }
+        else
+        { //on continue d'avancer
+            precedent = courant;
+            courant = courant->next;
+        }
+    }
+    //ici on est sortie de la boucle => fin de la liste courant == NULL
+    precedent->next = newPlayer;
+    newPlayer->next = NULL;
+
+    return list;
+}
 
 
 
@@ -381,12 +595,24 @@ void vizualiseConsequence(ACTION *action) {
 
 // Fonction utile pour afficher l'état actuel du joueur
 void displayPlayerStatus(PLAYER *player) {
-    printf("\n=== ETAT ACTUEL ===\n");
-    printf("Joueur: %s %s\n", player->firstName, player->lastName);
-    printf("Social:       [%d/100]\n", player->gaugeSocial);
-    printf("Economie:     [%d/100]\n", player->gaugeEco);
-    printf("Environement: [%d/100]\n", player->gaugeEnviro);
-    printf("Folie:        [%d/100]\n\n", player->gaugeMadness);
+
+    PLAYER *current = player;
+    if (player == NULL) {
+        printf("affiche statut joueur impossible sur liste vide\n");
+        return;
+    }
+    while (current != NULL) {
+        printf("\n=== ETAT ACTUEL ===\n");
+        printf("Joueur: %s %s\n", player->firstName, player->lastName);
+        printf("Social:       [%d/100]\n", player->gaugeSocial);
+        printf("Economie:     [%d/100]\n", player->gaugeEco);
+        printf("Environement: [%d/100]\n", player->gaugeEnviro);
+        printf("Folie:        [%d/100]\n\n", player->gaugeMadness);
+        for(int i = 0; i < 49; i++) {
+            printf("avancement[%d]=%d ",i,current->progression[i]);
+        }
+        current = current->next;
+    }
 }
 
 
