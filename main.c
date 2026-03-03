@@ -1,5 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+/// define ///
+
+#define MAX_DESCRP 100
+#define MAX_NOM 20
+
+#define LINE_SIZE 1000
+#define NOM_FICHIER_TXT_ETAPES "STRUCT.txt"
+#define NOM_FICHIER_TXT_PLAYERS "PLAYERS.txt"
+
+#define NB_MAX_ETAPES 49
 
 /// structures ///
 
@@ -9,9 +21,9 @@ typedef struct action {
     int impEco;
     int impEnviro;
     int madness;
-    char description[100];
-    char impDescription[50];
-
+    char description[MAX_DESCRP];
+    char impDescription[MAX_DESCRP];
+    struct action *next;
 }ACTION;
 
 typedef struct player {
@@ -34,6 +46,9 @@ typedef struct player {
 
 void initializePlayer(PLAYER *player);
 void saveProgression(PLAYER *player, FILE *historique);
+ACTION *chargerTxt(char *nomFichier);
+ACTION *recupererLigne(char *line);
+ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction);
 
 void displayPlayerStatus(PLAYER *player);
 
@@ -49,7 +64,7 @@ void displayEnding(PLAYER *player, int endingType);
 
 int main(void) {
 
-    ACTION *list ;
+    ACTION *list = NULL;
     PLAYER *Trump;
 
     int choice;
@@ -80,6 +95,154 @@ int main(void) {
 
     return 0;
 }
+
+
+ACTION *chargerTxt(char *nomFichier)
+{
+    printf("chargement du fichier %s\n", nomFichier);
+    ACTION *list = NULL;
+    ACTION *new = NULL;
+    FILE *f;
+
+    f = fopen(nomFichier, "r");
+    if (f == NULL)
+    {
+        printf("erreur lecture de fichier %s chargement annulee\n", nomFichier);
+        return NULL;
+    }
+
+    char lineBuffer[LINE_SIZE];
+
+    while (fgets(lineBuffer, LINE_SIZE, f) != NULL)
+    {
+        new = recupererLigne(lineBuffer);
+        list = insertionAlpha(list, new);
+    }
+
+    fclose(f);
+    return list;
+}
+
+
+/* Converti la ligne du fichier stockant les étapes ecrit en TXT en une structure que le programme peut comprendre */
+ACTION *recupererLigne(char *line)
+{
+    ACTION *new = malloc(sizeof(ACTION));
+    if (new == NULL)
+    {
+        printf("Erreur allocation memoire dans recupererLigne()\n");
+        return NULL;
+    }
+    memset(new,0,sizeof *new);
+
+    /* trim newline */
+    size_t len = strlen(line);
+    if (len > 0 && line[len-1] == '\n')
+        line[len-1] = '\0';
+    if (line[0] == '\0') {
+        free(new);
+        return NULL;
+    }
+
+    char separator[2] = ";";
+    char *token = strtok(line, separator);
+    if (!token) goto fail;
+    char *fin;
+    new->idAction = strtol(token, &fin, 10);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->impEco = strtol(token, &fin, 10);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->impSocial = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->impEnviro = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    new->madness = atoi(token);
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    strncpy(new->description, token, MAX_DESCRP-1);
+    new->description[MAX_DESCRP-1] = '\0';
+
+    token = strtok(NULL, separator);
+    if (!token) goto fail;
+    strncpy(new->impDescription, token, MAX_DESCRP-1);
+    new->impDescription[MAX_DESCRP-1] = '\0';
+
+    new->next = NULL;
+    return new;
+
+    //goto : sorte de saut qui ramene a fail (plus robuste & evite de repeter fail 36 fois)
+    fail:
+        free(new);
+    return NULL;
+}
+
+
+//Insertion des structures des étapes par id croissant
+ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
+{
+    if (newAction == NULL)
+    {
+        printf("Rien a insert\n");
+        return list;
+    }
+
+    if (list == NULL)
+    { /* cas d'une lsite vide */
+        newAction->next = NULL;
+        list = newAction;
+        return list;
+    }
+
+    ACTION *courant = list;
+    ACTION *precedent = NULL;
+    while (courant != NULL)
+    {
+        /* parcour de la liste pour trouver le bon endroit ou insert */
+        if (courant->idAction>newAction->idAction)
+        { /* on a trouver le bon endroit */
+            if (courant == list)
+            { /* ajout debut */
+                newAction->next = list;
+                list = newAction;
+                return list;
+            }
+            else
+            {
+                precedent->next = newAction;
+                newAction->next = courant;
+                return list;
+            }
+        }
+        else
+        { /* on continue d'avancer */
+            precedent = courant;
+            courant = courant->next;
+        }
+    }
+    /* ici on est sortie de la boucle => fin de la liste courant == NULL */
+    precedent->next = newAction;
+    newAction->next = NULL;
+
+    return list;
+}
+
+
+
+
+
+
+
+
+
 
 
 void initializePlayer(PLAYER *player) {
@@ -249,9 +412,9 @@ int checkGameOver(PLAYER *player) {
         return 4;
     }
 
+
     if (player->temporality == 48){
         return 5;
-        //FIN 5: si il finit son mandat = u won!
     }
 
     else {
