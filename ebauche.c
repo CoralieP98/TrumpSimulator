@@ -65,7 +65,7 @@ void afficherJauges(PLAYER* joueur);
 void jeu(PLAYER* joueur, STEP* liste);
 STEP* retirerTete(STEP** liste);
 
-/*
+
 int main(void){
     srand(time(NULL));
     STEP *liste = NULL;
@@ -103,7 +103,7 @@ int main(void){
     }
     return 0;
 }
-*/
+
 
 
 
@@ -117,7 +117,6 @@ void printMenu(void)
 	printf("4 - TBD\n");
 	printf("5 - TBD\n");
 }
-
 /*Chargement du fichier joueur dans une liste chainée*/
 PLAYER *chargerJoueurTxt(char *nomFichier){
 
@@ -204,7 +203,6 @@ fail:
 	free(new);
 	return NULL;
 }
-
 STEP *chargerTxt(char *nomFichier)
 {
 	printf("chargement du fichier %s\n", nomFichier);
