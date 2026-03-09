@@ -70,7 +70,7 @@ PLAYER *findPlayerById(PLAYER *list, int id);
 
 void saveProgression(PLAYER *list, char *nomFichier);
 
-int initializeActions(ACTION *list,ACTION **action1, ACTION **action2);
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2);
 void vizualiseAction(ACTION *action);
 void realizeAction(PLAYER *player, ACTION *action);
 
@@ -130,7 +130,7 @@ int main(void) {
                 printf("\n### CHARGER UNE PARTIE ###\n");
                 printf("Entrez l'ID du joueur: ");
                 int id;
-                scanf("%d", &id);
+                scanf(" %d", &id);
                 getchar();
 
                 PLAYER *player = chargePlayerById(Trump, id);
@@ -482,7 +482,7 @@ PLAYER *insertionJoueurById(PLAYER *list, PLAYER *newPlayer)
     while (courant != NULL)
     {
         // parcour de la liste pour trouver le bon endroit ou inserer
-        if (courant->idPlayer, newPlayer->idPlayer)
+        if (courant->idPlayer && newPlayer->idPlayer)
         { // on a trouver le bon endroit
             if (courant == list)
             { // ajout debut
@@ -659,7 +659,7 @@ PLAYER *creerEtEnregistrerJoueur(char *nomFichier)
 
 // Initialise deux actions aléatoires et retourne leurs IDs
 // Pour l'instant, on retourne juste deux IDs aléatoires
-int initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
     // regarde si assez d'actions
     int count =0;
     ACTION *current = list;
@@ -671,7 +671,6 @@ int initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
         printf("Pas assez d'actions dans la liste!\n");
         *action1 = NULL;
         *action2 = NULL;
-        return;
     }
     int index1 = rand() % count;
     int index2 = rand() % count;
@@ -721,7 +720,7 @@ void realizeAction(PLAYER *player, ACTION *action) {
     player->gaugeSocial += action->impSocial;
     player->gaugeEco += action->impEco;
     player->gaugeEnviro += action->impEnviro;
-    player->gaugeMadness + action->madness;
+    player->gaugeMadness += action->madness;
     player->temporality++;
 
     // Limite les jauges entre 0 et 100
@@ -741,7 +740,7 @@ void realizeAction(PLAYER *player, ACTION *action) {
         player->progression[action->idAction -1] = 1;
     }
 
-    printf("\nLes terriiibles consequences: %s \n",action->impDescription);
+    printf("\n Les terriiibles consequences: %s \n",action->impDescription);
 }
 
 
@@ -790,7 +789,7 @@ PLAYER *findPlayerById(PLAYER *list, int id) {
 PLAYER *chargePlayerById(PLAYER *list, int id) {
     PLAYER *player = findPlayerById(list, id);
     if (player == NULL) {
-        printf("\n joueur avec id %s introuvable.\n", id);
+        printf("\n joueur avec id %d introuvable.\n", id);
         return NULL;
     }
 
@@ -1018,9 +1017,12 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
         printf("\n Quel sera votre choix ? (1 ou 2)");
         scanf("%d", &choicePlayer);
 
-        while (choicePlayer != 1 && choicePlayer != 2) {
+        while ((choicePlayer != 1) && (choicePlayer != 2)) {
             printf("Un effort s'il te plait! 1 OU 2 pas 34! \n");
-            scanf("%d", &choicePlayer);
+            printf("Choisis entre 1 et 2 (tu sais compter jusqu'à deux ?) : ");
+            getchar();
+            scanf(" %d", &choicePlayer);
+            
         }
 
         //application impact action choisi
