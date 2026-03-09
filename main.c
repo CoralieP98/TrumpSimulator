@@ -14,6 +14,9 @@
 
 #define NB_MAX_ETAPES 49
 
+#define START_GAUGE 75
+#define START_MADNESS 5
+
 /// structures ///
 
 typedef struct action {
@@ -222,7 +225,7 @@ ACTION *chargerTxt(char *nomFichier)
     f = fopen(nomFichier, "r");
     if (f == NULL)
     {
-        printf("erreur JE SUIS VIDE  lecture de fichier %s chargement annulee\n", nomFichier);
+        printf("erreur lecture de fichier %s chargement annulee\n", nomFichier);
         return NULL;
     }
 
@@ -562,19 +565,11 @@ PLAYER *initializePlayer(char *nomFichier) {
     // Nom = Trump pour tout le monde
     strcpy(new->lastName, "Trump");
 
-    //flemme mot de passe
-    // printf("Entrez un mot de passe (max 14 caracteres): ");
-    // fgets(new->password, 15, stdin);
-    // len = strlen(new->password);
-    // if (len > 0 && new->password[len-1] == '\n') {
-    //     new->password[len-1] = '\0';
-    // }
-
     // Initialise les jauges
-    new->gaugeSocial = 50;
-    new->gaugeEco = 50;
-    new->gaugeEnviro = 50;
-    new->gaugeMadness = 15;
+    new->gaugeSocial = START_GAUGE;
+    new->gaugeEco = START_GAUGE;
+    new->gaugeEnviro = START_GAUGE;
+    new->gaugeMadness = START_MADNESS;
 
     // Commence au mois 1
     new->temporality = 1;
