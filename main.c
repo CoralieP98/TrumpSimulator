@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 #include <time.h>
 
 /// define ///
@@ -13,6 +14,9 @@
 #define NOM_FICHIER_TXT_PLAYERS "PLAYERS.txt"
 
 #define NB_MAX_ETAPES 49
+
+#define START_GAUGE 75
+#define START_MADNESS 5
 
 /// structures ///
 
@@ -70,10 +74,11 @@ PLAYER *findPlayerById(PLAYER *list, int id);
 
 void saveProgression(PLAYER *list, char *nomFichier);
 
-int initializeActions(ACTION *list,ACTION **action1, ACTION **action2);
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2);
 void vizualiseAction(ACTION *action);
 void realizeAction(PLAYER *player, ACTION *action);
 
+void applyMidtermsConsequence(PLAYER *list, PLAYER *currentPlayer);
 int checkGameOver(PLAYER *player);
 void displayEnding(PLAYER *player, int endingType);
 
@@ -82,10 +87,11 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
 
 
 int main(void) {
+    SetConsoleOutputCP(65001);
 
-    //le fichier struct marche mais j'ai demandé a claude de le faire pour pas me faire chié (du coup les blagues et les modificateurs sont nuls)
+    //le fichier struct marche mais j'ai demand? a claude de le faire pour pas me faire chi? (du coup les blagues et les modificateurs sont nuls)
     //je le referai mieux lundi
-    //ça et le coté "joli" des menus si on a le temps
+    //?a et le cot? "joli" des menus si on a le temps
 
     srand(time(NULL));
     ACTION *list = NULL;
@@ -111,7 +117,7 @@ int main(void) {
                 printf("\n### NOUVELLE PARTIE ###\n");
                 PLAYER *newPlayer = creerEtEnregistrerJoueur(NOM_FICHIER_TXT_PLAYERS);
                 if (newPlayer != NULL) {
-                    //Ajoute le nouveau à la liste
+                    //Ajoute le nouveau ? la liste
                     Trump = insertionJoueurById(Trump, newPlayer);
 
                     //go inGame avec ce joueur direct
@@ -130,7 +136,7 @@ int main(void) {
                 printf("\n### CHARGER UNE PARTIE ###\n");
                 printf("Entrez l'ID du joueur: ");
                 int id;
-                scanf("%d", &id);
+                scanf(" %d", &id);
                 getchar();
 
                 PLAYER *player = chargePlayerById(Trump, id);
@@ -169,14 +175,14 @@ void printMenu(void)
     printf("#########################\n");
     printf("1 - New Game\n");
     printf("2 - PLAY\n");
-    printf("3 - See the backstages \n"); //afficher toutes les étapes
+    printf("3 - See the backstages \n"); //afficher toutes les ?tapes
     printf("4 - See all players\n");
     printf("0 - Exit ----\n");
     printf("#########################\n");
 }
 
 
-//Affiche le contenu d'une liste chainée
+//Affiche le contenu d'une liste chain?e
 void afficheListe(ACTION *list)
 {
     ACTION *courant = list;
@@ -194,7 +200,7 @@ void afficheListe(ACTION *list)
     }
 }
 
-//Affiche le contenue d'une structure étape
+//Affiche le contenue d'une structure ?tape
 void displayAction(ACTION *action)
 {
     if (action == NULL)
@@ -222,7 +228,7 @@ ACTION *chargerTxt(char *nomFichier)
     f = fopen(nomFichier, "r");
     if (f == NULL)
     {
-        printf("erreur JE SUIS VIDE  lecture de fichier %s chargement annulee\n", nomFichier);
+        printf("erreur lecture de fichier %s chargement annulee\n", nomFichier);
         return NULL;
     }
 
@@ -238,7 +244,7 @@ ACTION *chargerTxt(char *nomFichier)
     return list;
 }
 
-/* Converti la ligne du fichier stockant les étapes ecrit en TXT en une structure que le programme peut comprendre */
+/* Converti la ligne du fichier stockant les ?tapes ecrit en TXT en une structure que le programme peut comprendre */
 ACTION *recupererLigne(char *line)
 {
     ACTION *new = malloc(sizeof(ACTION));
@@ -298,7 +304,7 @@ ACTION *recupererLigne(char *line)
     return NULL;
 }
 
-//Insertion des structures des étapes par id croissant
+//Insertion des structures des ?tapes par id croissant
 ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
 {
     if (newAction == NULL)
@@ -354,7 +360,7 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
 
 
 
-/*Chargement du fichier joueur dans une liste chainée*/
+/*Chargement du fichier joueur dans une liste chain?e*/
 PLAYER *chargerJoueurTxt(char *nomFichier){
 
     printf("chargement du fichier %s\n", nomFichier);
@@ -482,7 +488,7 @@ PLAYER *insertionJoueurById(PLAYER *list, PLAYER *newPlayer)
     while (courant != NULL)
     {
         // parcour de la liste pour trouver le bon endroit ou inserer
-        if (courant->idPlayer, newPlayer->idPlayer)
+        if (courant->idPlayer && newPlayer->idPlayer)
         { // on a trouver le bon endroit
             if (courant == list)
             { // ajout debut
@@ -510,7 +516,7 @@ PLAYER *insertionJoueurById(PLAYER *list, PLAYER *newPlayer)
     return list;
 }
 
-// Génère un ID unique en lisant le fichier existant
+// G?n?re un ID unique en lisant le fichier existant
 int genererIdUnique(char *nomFichier)
 {
     FILE *f = fopen(nomFichier, "r");
@@ -520,7 +526,7 @@ int genererIdUnique(char *nomFichier)
         return 1; // Premier joueur
     }
 
-    char line[2048]; // Grosse ligne à cause de progression
+    char line[2048]; // Grosse ligne ? cause de progression
     while (fgets(line, 2048, f) != NULL) {
         int id;
         if (sscanf(line, "%d;", &id) == 1) {
@@ -546,7 +552,7 @@ PLAYER *initializePlayer(char *nomFichier) {
 
     printf("\n=== CREATION DE VOTRE PRESIDENT ===\n\n");
 
-    // Génère un ID
+    // G?n?re un ID
     new->idPlayer = genererIdUnique(nomFichier);
 
     int c;
@@ -562,24 +568,16 @@ PLAYER *initializePlayer(char *nomFichier) {
     // Nom = Trump pour tout le monde
     strcpy(new->lastName, "Trump");
 
-    //flemme mot de passe
-    // printf("Entrez un mot de passe (max 14 caracteres): ");
-    // fgets(new->password, 15, stdin);
-    // len = strlen(new->password);
-    // if (len > 0 && new->password[len-1] == '\n') {
-    //     new->password[len-1] = '\0';
-    // }
-
     // Initialise les jauges
-    new->gaugeSocial = 50;
-    new->gaugeEco = 50;
-    new->gaugeEnviro = 50;
-    new->gaugeMadness = 15;
+    new->gaugeSocial = START_GAUGE;
+    new->gaugeEco = START_GAUGE;
+    new->gaugeEnviro = START_GAUGE;
+    new->gaugeMadness = START_MADNESS;
 
     // Commence au mois 1
     new->temporality = 1;
 
-    // Initialise progression à 0
+    // Initialise progression ? 0
     for (int i = 0; i < NB_MAX_ETAPES; i++) {
         new->progression[i] = 0;
     }
@@ -657,9 +655,9 @@ PLAYER *creerEtEnregistrerJoueur(char *nomFichier)
 
 
 
-// Initialise deux actions aléatoires et retourne leurs IDs
-// Pour l'instant, on retourne juste deux IDs aléatoires
-int initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
+// Initialise deux actions al?atoires et retourne leurs IDs
+// Pour l'instant, on retourne juste deux IDs al?atoires
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
     // regarde si assez d'actions
     int count =0;
     ACTION *current = list;
@@ -671,7 +669,6 @@ int initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
         printf("Pas assez d'actions dans la liste!\n");
         *action1 = NULL;
         *action2 = NULL;
-        return;
     }
     int index1 = rand() % count;
     int index2 = rand() % count;
@@ -721,7 +718,7 @@ void realizeAction(PLAYER *player, ACTION *action) {
     player->gaugeSocial += action->impSocial;
     player->gaugeEco += action->impEco;
     player->gaugeEnviro += action->impEnviro;
-    player->gaugeMadness + action->madness;
+    player->gaugeMadness += action->madness;
     player->temporality++;
 
     // Limite les jauges entre 0 et 100
@@ -741,11 +738,11 @@ void realizeAction(PLAYER *player, ACTION *action) {
         player->progression[action->idAction -1] = 1;
     }
 
-    printf("\nLes terriiibles consequences: %s \n",action->impDescription);
+    printf("\n Les terriiibles consequences: %s \n",action->impDescription);
 }
 
 
-// Fonction utile pour afficher l'état actuel du joueur // utilisé dans le menu pour voir tout les joueurs et selectionner l'id
+// Fonction utile pour afficher l'?tat actuel du joueur // utilis? dans le menu pour voir tout les joueurs et selectionner l'id
 void displayPlayerStatus(PLAYER *player) {
 
     PLAYER *current = player;
@@ -790,7 +787,7 @@ PLAYER *findPlayerById(PLAYER *list, int id) {
 PLAYER *chargePlayerById(PLAYER *list, int id) {
     PLAYER *player = findPlayerById(list, id);
     if (player == NULL) {
-        printf("\n joueur avec id %s introuvable.\n", id);
+        printf("\n joueur avec id %d introuvable.\n", id);
         return NULL;
     }
 
@@ -813,22 +810,22 @@ PLAYER *chargePlayerById(PLAYER *list, int id) {
 //gestion des fins
 int checkGameOver(PLAYER *player) {
 
-    // FIN 1: Folie à 100 - Trump complètement fou
+    // FIN 1: Folie ? 100 - Trump compl?tement fou
     if (player->gaugeMadness >= 100) {
         return 1;
     }
 
-    // FIN 2: Social à 0 - Révolution populaire
+    // FIN 2: Social ? 0 - R?volution populaire
     if (player->gaugeSocial <= 0) {
         return 2;
     }
 
-    // FIN 3: Économie à 0 - Effondrement économique
+    // FIN 3: ?conomie ? 0 - Effondrement ?conomique
     if (player->gaugeEco <= 0) {
         return 3;
     }
 
-    // FIN 4: Environnement à 0 - Catastrophe écologique ou autre
+    // FIN 4: Environnement ? 0 - Catastrophe ?cologique ou autre
     if (player->gaugeEnviro <= 0) {
         return 4;
     }
@@ -856,7 +853,7 @@ void displayEnding(PLAYER *player, int endingType) {
             printf("=== GAME OVER: FOLIE TOTALE ===\n\n");
             printf("Votre folie a atteint des sommets inimaginables!\n");
             printf("Apres avoir declare la guerre aux extraterrestres\n");
-            printf("et essaye de racheter la Lune et vous appuye sur le bouton rouge interdit\n");
+            printf("et essaye de racheter la Lune, vous appuye sur le bouton rouge interdit\n");
             break;
 
         case 2:
@@ -892,7 +889,7 @@ void displayEnding(PLAYER *player, int endingType) {
             printf("  - Environnement: %d/100\n", player->gaugeEnviro);
             printf("  - Folie: %d/100\n\n", player->gaugeMadness);
 
-            // Calcul d'un score basé sur les jauges
+            // Calcul d'un score bas? sur les jauges
             int score = (player->gaugeSocial + player->gaugeEco +
                         player->gaugeEnviro + (100 - player->gaugeMadness)) / 4;
 
@@ -919,8 +916,31 @@ void displayEnding(PLAYER *player, int endingType) {
     printf("===============================================\n\n");
 }
 
+void applyMidtermsConsequence(PLAYER *list, PLAYER *currentPlayer) {
 
-// Sauvegarde TOUS les joueurs dans le fichier après chaque action
+    if (currentPlayer->temporality == 4) {
+        printf("\nC'est votre 24eme mois !\n");
+        printf("C'est l'heure Du Du Duuu !\n\n\n\n");
+        printf("Des Elections de mi-mandat !\n");
+        int total = currentPlayer->gaugeSocial + currentPlayer->gaugeEco + currentPlayer->gaugeEnviro;
+
+        if (total >= 150 ) {
+            printf("Felicitations ! Vous avez gagnez vos elections de mi-mandat! A vous les bonus!\n");
+            currentPlayer->gaugeEco += 25;
+            currentPlayer->gaugeSocial += 25;
+        }
+        if (total <= 150 ) {
+            printf("OIN OIN OIIIIINNNN ! YOU LOSE !!\n");
+            printf("Votre parti lui meme vote contre vous! Cela impact fortement votre reputation!\n");
+            currentPlayer->gaugeEco -= 8;
+            currentPlayer->gaugeSocial -= 8;
+        }
+    }
+    printf("plus que %d mois!\n\n", 48-currentPlayer->temporality);
+}
+
+
+// Sauvegarde TOUS les joueurs dans le fichier apr?s chaque action
 void saveProgression(PLAYER *list, char *nomFichier)
 {
     if (list == NULL) {
@@ -928,7 +948,7 @@ void saveProgression(PLAYER *list, char *nomFichier)
         return;
     }
 
-    FILE *f = fopen(nomFichier, "w"); // Écrase le fichier
+    FILE *f = fopen(nomFichier, "w"); // ?crase le fichier
     if (f == NULL) {
         printf("Impossible de sauvegarder dans %s\n", nomFichier);
         return;
@@ -972,17 +992,60 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
         printf("joueur ou list d'actions invalide/vide.\n");
         return;
     }
-    printf("\n");
-    printf("############################################\n");
-    printf("##     DEBUT DU MANDAT PRESIDENTIEL       ##\n");
-    printf("############################################\n");
+printf("\n");
+printf("######################################################################\n");
+printf("##                     DEBUT DU MANDAT PRESIDENTIEL                 ##\n");
+printf("######################################################################\n\n");
+printf("  ⡅⢊⠔⣏⠒⣍⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢿⣻⣟⣿⣻⢿⡿⣿⣻⣟⡿⣿\n");
+printf("  ⡜⢠⠚⡬⡑⢬⠲⣹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣞⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⣷⣿⣾⣿⣿\n");
+printf("  ⡜⢢⠑⣢⢙⢢⠓⣬⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣿⣿⣿⣿⣿⣽⣯⣷⣷⣾⣷⣿⣽⣿⣷⣾⣶⣯⣿\n");
+printf("  ⢮⡑⣊⠴⣫⠬⣙⡮⢧⣹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⣿⢿⣿⡿⢻⣛⢿⣛⠛⣟⢿⠿⡿⠿⡿⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⢦⠓⣌⢺⡕⢪⠵⣛⢦⡑⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠋⠁⠁⠀⠈⠁⠂⠉⠀⡈⠄⡐⢈⢁⢂⠔⡔⠡⠀⠈⠈⠙⠻⣿⣿⣿⣿⣿⣿⣭⣯⣽⣭⣯⣷⣭⣿⣼⣷⣯⣿⣽⣿\n");
+printf("  ⣌⠓⣤⡛⡼⢡⡟⡭⢒⡌⢇⡚⣿⣿⣿⣿⣿⣿⠏⠈⠀⠀⡀⠀⠀⠀⠀⠀⠈⠀⣀⠉⠀⠀⢘⡈⡢⠈⢎⠆⠃⢐⠀⠀⠀⠙⠽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣽⣿⣿⣿⣿\n");
+printf("  ⣿⡖⠤⢹⠌⡳⡘⡥⢣⠜⣊⠵⡨⢿⣿⣿⠯⠁⠀⠀⣀⡠⢄⠤⠀⠀⠂⠀⠀⡁⠄⢀⠨⠄⡓⡼⠝⡳⡦⠑⡁⡀⠀⡀⠁⠀⠐⢋⢙⢌⣛⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣧⢊⢲⡁⠳⣌⢣⠊⡔⢢⠑⢢⢻⣿⠋⠀⡠⣦⡏⠾⣡⢎⠱⡁⠁⠁⡀⢂⠁⠬⢝⠵⢚⠁⠣⢂⣹⠫⢬⠢⡐⢀⠀⠂⠁⠉⠊⠐⢠⠈⢿⣿⣿⣿⡿⣷⣿⣿⣾⢿⣽⡿⣿\n");
+printf("  ⣿⣿⣿⣷⡢⢍⡱⢤⢃⠎⠰⡁⢎⠰⡎⠇⠐⡠⣣⣼⣽⢫⡗⠜⣁⠐⠀⠌⠀⠀⠀⠐⠀⠀⠘⢬⢻⠕⢿⡩⡥⠛⢒⠂⠂⡀⠀⡀⡂⠀⠀⠌⢺⣯⣽⣿⣿⣿⣿⣾⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣷⡃⠔⣊⠦⣘⠡⡜⢠⢻⣇⡀⢢⣮⣿⡿⢻⣁⣶⣩⡞⠄⡔⠀⠀⠀⠀⠀⠀⠀⠀⣀⢱⡙⢪⣷⣞⢯⡙⠠⠀⠔⠂⢀⠒⠔⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⡔⣨⠖⣡⠏⡰⢡⣟⡿⠐⠿⣻⣿⣿⣏⣿⡿⢗⣭⠗⡈⠑⡀⠀⠀⠀⠀⠀⠚⠀⢌⣝⠗⡥⠿⣗⠌⠅⡓⠎⢔⡠⡛⡽⣚⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣄⢋⣆⢣⣱⣛⣾⡇⣴⣿⣛⣷⠯⣾⣷⣿⣿⡞⢽⠝⠊⠄⠀⠀⠀⠀⠀⠀⠁⠈⠀⢇⠰⠢⠁⠿⢚⣼⢟⣇⢟⡳⣯⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣆⠜⣢⠷⡝⣾⠏⡨⢢⣊⣭⣛⣟⣿⣾⣏⡻⢚⡁⠃⠀⠀⠄⠀⠀⠀⠀⠀⠀⢀⠈⠘⠀⠉⠁⠉⠠⣩⣾⠜⢻⣳⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⡜⡟⣱⣾⢹⢕⡷⣦⡏⢬⠋⡽⣞⣮⠡⣡⠐⡁⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⣒⡞⠨⡚⢯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⡳⣼⠫⣟⣞⣿⡻⣑⠇⣄⢿⡼⣮⡙⠴⠼⠐⡂⠌⠩⠈⠉⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠐⢀⢭⢛⢡⡸⣸⡏⣟⣻⡙⣏⡝⣫⠽⣩⢏⡽⢭⠯⡽⣹\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡹⡇⢡⡯⣿⡋⣣⢶⡽⡾⣽⣿⢳⣭⣀⣑⠛⢵⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠊⠉⠔⡿⣼⢷⡿⣿⣾⣿⣿⣷⣿⣯⣿⣳⣯⣾⣟⣾⣷⣯\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡿⢰⣿⠯⡔⣿⢂⢿⣵⣿⣿⡞⠣⠥⠔⠫⡡⠠⠀⡀⢀⢀⠀⠀⠀⠠⠔⣤⢶⣂⡐⠊⣰⢿⡽⣸⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣏⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⢣⡇⠀⣿⡿⢃⣿⣿⣾⣟⣷⣱⣶⣶⣖⣖⣴⣉⢔⣦⣷⠀⢀⢷⣦⣾⠿⠿⠟⠘⣳⣰⢸⣷⣏⢸⣿⣿⠟⣿⣿⢏⢻⣿⡟⡙⢿⣿⡋⠹⣿\n");
+printf("  ⡞⡜⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⢷⣸⣯⢹⡎⢿⡯⣿⡿⢿⣟⠑⠂⡀⠀⠀⢀⣽⢿⠣⠀⠀⠨⠦⠐⢀⠀⠀⢈⢡⢺⢿⣿⡇⣿⣿⡿⣛⠻⣟⢧⣫⠛⣽⣤⣻⢯⣳⣞⣽\n");
+printf("  ⡽⡘⡜⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠿⢉⢻⡯⢾⣿⣿⡿⡽⣝⣲⠰⡀⠐⠂⢻⡷⢑⣪⢀⠀⢀⠈⠆⠐⠂⠀⢁⠎⠇⣿⠁⢱⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣷⣎⡿\n");
+printf("  ⣧⠱⢎⢏⡻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡴⠛⣿⣿⣿⣽⣿⣾⡮⣟⡓⠀⠡⠪⠹⣿⣿⣿⠄⠠⠈⡄⠀⠀⠀⠀⠠⠠⣌⣿⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣧⢛⠬⢆⠵⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⡗⣿⣿⣿⡿⣟⣿⣒⠆⠪⣁⡐⠱⣟⣽⡧⠊⠀⠀⡻⠠⠀⠀⠀⠀⢰⢡⢼⣿⣿⣿⣟⣯⣽⣿⣿⣿⣿⣳⣾⢿⣿⣿⣿⣿⣿\n");
+printf("  ⣛⣎⠧⣋⢎⡳⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⠈⣧⣹⣿⣿⢷⡿⣾⣷⡲⠁⠀⢠⠠⣧⣽⡌⠠⢀⠠⡆⠁⡄⠀⠀⠠⠍⡤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣧⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣟⡼⠳⣌⢞⡽⣻⢜⣿⣿⣿⣿⣿⣿⣿⡛⣽⡇⠀⠹⣿⣏⡿⣷⣿⣿⣿⠟⢂⣵⠯⣀⡛⠒⡛⠉⠀⠀⠂⡁⠐⡄⠀⢀⢾⢰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⢧⣛⠷⣨⢞⣽⢣⢞⡽⣿⣿⣿⢿⣳⣷⣽⣿⡇⠀⠀⠙⣷⣿⢿⣿⣿⣷⢬⠿⡁⣥⡈⠡⠯⠁⠀⠀⠀⠐⠈⠀⠀⠀⠈⣌⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⢧⣏⡳⢥⢾⣭⣳⣾⣻⣽⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⢿⣿⣿⣻⣯⠀⣤⣾⢫⠌⢉⠉⢉⠁⠉⠡⠀⠁⠂⠀⠀⢀⣾⣿⣿⣳⣿⣟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⡳⣮⢷⣛⣽⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠻⣧⣿⢡⣼⡿⡸⣟⣶⣮⢖⢲⠒⣢⠠⡀⠀⠀⢠⢀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣷⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡃⠀⠀⠀⠀⠀⠈⠺⡙⠴⢿⣸⣿⡟⣷⡢⠐⠀⠅⣩⠐⣤⡶⡺⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⣿⣦⡅⡙⠣⠠⢄⣄⠶⡿⠛⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⢿⣿⣿⢏⡊⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡰⣟⡻⣟⣿⣿⣶⣄⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⣀⢺⣿⣽⣿⣜⣻⣿⡿⢁⠲⣂⠀⠀⠀⣘⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⡀⢦⢠⠻⣞⣿⣿⣷⣩⣿⠃⡬⢑⡈⡑⢇⡔⠰⣫⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣗⠀⠀⠠⠀⡐⡀⢆⣻⢳⣿⣿⣿⣼⣿⠡⠘⢆⠠⢁⠋⢶⢳⡒⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡶⢔⡁⠀⠀⢱⢪⡜⣯⣿⣿⣟⣿⣿⣧⡈⠌⠣⢌⡘⢢⠓⡜⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠈⡔⢃⠲⡄⢧⡙⣾⣿⣿⣿⣿⣿⣿⣷⡠⠁⠂⡔⠡⢣⠘⣸⣿⣿⣿⣿⣿⣿⣿⣟⠟⡝⣻⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣆⠙⠦⡑⠜⡡⠃⣿⣿⣿⣿⣿⡿⣿⣿⣷⡀⠡⠌⣁⠪⡔⢨⣿⣿⣿⣿⣿⣿⣿⣿⣧⣜⣽⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣉⢮⡱⢌⡐⠡⣿⣿⣿⣿⣿⣿⣿⣷⡿⡇⠄⠡⢀⠒⡸⡀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡜⣦⠳⡰⢈⡐⣿⣿⣿⣿⣿⣿⣿⣾⣿⣿⡄⢁⠂⢌⡰⡑⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡖⢯⡑⢢⠘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡂⢁⢆⠲⣙⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣽⢧⡙⢦⣋⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣈⠬⡳⢬⣛⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣛⠶⣭⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⢚⡵⣫⣞⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n\n");
+
 
     //boucle de jeu : 48 mois
     while (player->temporality < 48) {
 
-        printf("##################################\n");
-        printf("  MOIS %d / 48\n", player->temporality);
-        printf("##################################\n");
+        printf("######################################################################\n");
+        printf("                             MOIS %d / 48                             \n", player->temporality);
+        printf("######################################################################\n");
 
         //verifie conditions de fin
         int endingType = checkGameOver(player);
@@ -991,7 +1054,9 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
             break;
         }
 
-        // Affiche l'état actuel
+        applyMidtermsConsequence(listPlayers, player);
+
+        // Affiche l'?tat actuel
         printf("Etat actuel:\n");
         printf("  Social: %d | Eco: %d | Enviro: %d | Folie: %d\n\n",
                player->gaugeSocial, player->gaugeEco,
@@ -1002,7 +1067,7 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
         initializeActions(list, &action1, &action2);
 
         if (action1 == NULL || action2 == NULL) {
-            printf("erreur lors de la sélection des actions.\n");
+            printf("erreur lors de la s?lection des actions.\n");
             break;
         }
 
@@ -1018,9 +1083,12 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
         printf("\n Quel sera votre choix ? (1 ou 2)");
         scanf("%d", &choicePlayer);
 
-        while (choicePlayer != 1 && choicePlayer != 2) {
+        while ((choicePlayer != 1) && (choicePlayer != 2)) {
             printf("Un effort s'il te plait! 1 OU 2 pas 34! \n");
-            scanf("%d", &choicePlayer);
+            printf("Choisis entre 1 et 2 (tu sais compter jusqu'? deux ?) : ");
+            getchar();
+            scanf(" %d", &choicePlayer);
+
         }
 
         //application impact action choisi
@@ -1038,15 +1106,15 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
 
         printf("\nAppuyez sur Entree pour continuer...");
         getchar(); // Consomme le \n du scanf
-        getchar(); // Attend l'entrée
+        getchar(); // Attend l'entr?e
     }
 
     if (player->temporality >= 48) {
         displayEnding(player, 5); // Fin reussi
     }
 
-    printf("############################################\n");
+    printf("######################################################################\n");
     printf("      FIN DE LA PARTIE\n");
-    printf("############################################\n");
+    printf("######################################################################\n");
 }
 
