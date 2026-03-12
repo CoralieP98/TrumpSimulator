@@ -963,7 +963,7 @@ void saveProgression(PLAYER *list, char *nomFichier)
 //GROSSE fonction qui gere tout le gameplay du jeu
 void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSave) {
     if (player == NULL || list == NULL) {
-        printf("joueur ou list d'actions invalide/vide.\n");
+        printf("joueur ou liste d'actions invalide/vide.\n");
         return;
     }
 printf("\n");
