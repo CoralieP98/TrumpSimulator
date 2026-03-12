@@ -73,7 +73,7 @@ PLAYER *findPlayerById(PLAYER *list, int id);
 
 void saveProgression(PLAYER *list, char *nomFichier);
 
-void initializeActions(ACTION *list,ACTION **action1, ACTION **action2);
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2,PLAYER *joueur);
 void vizualiseAction(ACTION *action);
 void realizeAction(PLAYER *player, ACTION *action);
 
@@ -86,10 +86,7 @@ void gamePLay(PLAYER *player, ACTION *list,PLAYER *listPlayers, char *fichierSav
 
 int main(void) {
 
-    //le fichier struct marche mais j'ai demandé a claude de le faire pour pas me faire chié (du coup les blagues et les modificateurs sont nuls)
-    //je le referai mieux lundi
-    //ça et le coté "joli" des menus si on a le temps
-
+   
     srand(time(NULL));
     ACTION *list = NULL;
     PLAYER *Trump = NULL;
@@ -188,11 +185,11 @@ void afficheListe(ACTION *list)
         printf("afficheListe impossible sur liste vide\n");
         return;
     }
-    while (courant != NULL) /* tant qu'il reste des actions */
+    while (courant != NULL) 
     {
         displayAction(courant);
 
-        /* on avance vers l'action suivant */
+    
         courant = courant->next;
     }
 }
@@ -241,7 +238,7 @@ ACTION *chargerTxt(char *nomFichier)
     return list;
 }
 
-/* Converti la ligne du fichier stockant les étapes ecrit en TXT en une structure que le programme peut comprendre */
+
 ACTION *recupererLigne(char *line)
 {
     ACTION *new = malloc(sizeof(ACTION));
@@ -252,7 +249,7 @@ ACTION *recupererLigne(char *line)
     }
     memset(new,0,sizeof *new);
 
-    /* trim newline */
+   
     size_t len = strlen(line);
     if (len > 0 && line[len-1] == '\n')
         line[len-1] = '\0';
@@ -321,9 +318,9 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
     ACTION *precedent = NULL;
     while (courant != NULL)
     {
-        /* parcour de la liste pour trouver le bon endroit ou insert */
+        
         if (courant->idAction>newAction->idAction)
-        { /* on a trouver le bon endroit */
+        { 
             if (courant == list)
             { /* ajout debut */
                 newAction->next = list;
@@ -338,12 +335,12 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
             }
         }
         else
-        { /* on continue d'avancer */
+        { 
             precedent = courant;
             courant = courant->next;
         }
     }
-    /* ici on est sortie de la boucle => fin de la liste courant == NULL */
+    
     precedent->next = newAction;
     newAction->next = NULL;
 
@@ -357,7 +354,7 @@ ACTION *insertionAlphaActions(ACTION *list, ACTION *newAction)
 
 
 
-/*Chargement du fichier joueur dans une liste chainée*/
+// chargement du contenu du fichier dans une liste chainée
 PLAYER *chargerJoueurTxt(char *nomFichier){
 
     printf("chargement du fichier %s\n", nomFichier);
@@ -383,7 +380,7 @@ PLAYER *chargerJoueurTxt(char *nomFichier){
     return player;
 }
 
-/* Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure que le programme peut comprendre */
+// Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure 
 PLAYER *recupererLigneJoueur(char *line)
 {
     PLAYER *new = malloc(sizeof(PLAYER));
@@ -394,12 +391,12 @@ PLAYER *recupererLigneJoueur(char *line)
     }
     memset(new, 0, sizeof *new);
 
-    /* trim newline */
+    
     size_t len = strlen(line);
     if (len > 0 && line[len-1] == '\n')
         line[len-1] = '\0';
 
-    if (line[0] == '\0') { /* ligne vide */
+    if (line[0] == '\0') {
         free(new);
         return NULL;
     }
@@ -446,7 +443,7 @@ PLAYER *recupererLigneJoueur(char *line)
     strncpy(new->password, token, 14);
     new->password[14] = '\0';
 
-    /* read progression fields if present, otherwise leave at 0 */
+    
     for(int i = 0; i < NB_MAX_ETAPES; ++i) {
         token = strtok(NULL, separator);
         if (token)
@@ -601,7 +598,7 @@ int enregistrerJoueur(PLAYER *player, char *nomFichier)
         return 0;
     }
 
-    // Format: id;eco;social;enviro;madness;firstName;lastName;temporality;password;progression...
+    // Format: id;eco;social;enviro;madness;firstName;lastName;temporality;password;progression
     fprintf(f, "%d;%d;%d;%d;%d;%s;%s;%d;%s",
             player->idPlayer,
             player->gaugeEco,
@@ -654,11 +651,13 @@ PLAYER *creerEtEnregistrerJoueur(char *nomFichier)
 
 // Initialise deux actions aléatoires et retourne leurs IDs
 // Pour l'instant, on retourne juste deux IDs aléatoires
-void initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
+void initializeActions(ACTION *list,ACTION **action1, ACTION **action2, PLAYER *joueur) {
     // regarde si assez d'actions
     int count =0;
     ACTION *current = list;
+    //printf("DEBUG : dans la fonction initialize\n");
     while (current != NULL) {
+        //printf("DEBUG : dans la fonction current 1\n");
         count++;
         current = current->next;
     }
@@ -667,17 +666,33 @@ void initializeActions(ACTION *list,ACTION **action1, ACTION **action2) {
         *action1 = NULL;
         *action2 = NULL;
     }
-    int index1 = rand() % count;
-    int index2 = rand() % count;
-
+    //printf("DEBUG : ok1\n");
+    int index1=0;
+    int index2=0;
+    while(joueur->progression[index1]==1){
+     index1 = rand() % count;
+     //printf("DEBUG : dans la boucle index 1\n");
+    }
+     while(joueur->progression[index2]==1){
+     index2 = rand() % count;
+     //printf("DEBUG : dans la boucle index 2\n");
+    }
+    //printf("DEBUG : ok2\n");
     while (index2 == index1) {
+        //printf("DEBUG : dans index1=index2\n");
+        //printf("index 1:%d\n",index1);
+        //printf("index 2:%d\n",index2);
         index2 = rand() % count;
+        if(joueur->progression[index2]==1){
+        index2 = rand() % count;
+    }
     }
 
     current = list;
     int i = 0;
 
     while (current != NULL) {
+        //printf("DEBUG : dans la boucle current 2\n");
         if (i == index1) {
             *action1 = current;
         }
@@ -1036,8 +1051,8 @@ printf("  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿�
 
         ACTION *action1 = NULL;
         ACTION *action2 = NULL;
-        initializeActions(list, &action1, &action2);
-
+        initializeActions(list, &action1, &action2,player);
+        //printf("DEBUG : dans gameplay\n");
         if (action1 == NULL || action2 == NULL) {
             printf("erreur lors de la sélection des actions.\n");
             break;
