@@ -1131,6 +1131,6 @@ void gamePLay(PLAYER *player, ACTION *list, PLAYER *listPlayers, char *fichierSa
 
     printf("######################################################################\n");
     printf("      FIN DE LA PARTIE\n");
-    printf("############################################\n");
+    printf("######################################################################\n");
 }
 
