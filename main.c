@@ -107,18 +107,8 @@ int main(void)
     while (end == 0)
     {
         printMenu();
+        scanf(" %d", &choice);
 
-        scanf("%d", &choice);
-        if (scanf("%d", &choice) != 1)  // si ce n'est pas un entier
-    {
-        printf("\non t'as dit un nombre... c'est pas compliqué non ?\n\n");
-
-        // vider le buffer clavier
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF);
-
-        continue; // revenir au menu
-    }
         switch (choice)
         {
         case 1:
@@ -255,6 +245,10 @@ ACTION *chargerTxt(char *nomFichier)
 // récupère le contenu d'une ligne de fichier et le charge dans une structure
 ACTION *recupererLigne(char *line)
 {
+    if(line ==NULL){
+        printf("pointeur null dans recupererLigne \n");
+        return NULL;
+    }
     ACTION *new = malloc(sizeof(ACTION));
     if (new == NULL)
     {
@@ -391,6 +385,10 @@ PLAYER *chargerJoueurTxt(char *nomFichier)
 //Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure 
 PLAYER *recupererLigneJoueur(char *line)
 {
+    if(line==NULL){
+        printf("erreur de pointeur dans recupererLigneJoueur\n");
+        return NULL;
+    }
     PLAYER *new = malloc(sizeof(PLAYER));
     if (new == NULL)
     {
@@ -546,6 +544,9 @@ int genererIdUnique(char *nomFichier)
 PLAYER *initializePlayer(char *nomFichier)
 {
     PLAYER *new = malloc(sizeof(PLAYER));
+    if(nomFichier==NULL){
+        printf("erreur de pointeur de fichier dans initializePlayer\n");
+    }
     if (new == NULL) {
         printf("Erreur allocation memoire pour le joueur\n");
         return NULL;
@@ -656,7 +657,14 @@ void initializeActions(ACTION *list, ACTION **action1, ACTION **action2, PLAYER 
     // regarde si assez d'actions
     int count = 0;
     ACTION *current = list;
-
+    if(action1==NULL||action2==NULL){
+        printf("erreur de pointeur action dans initializeActions\n");
+        return;
+    }
+    if(joueur==NULL){
+        printf("erreur de pointeur joueur dans initializeActions\n");
+        return;
+    }
     while (current != NULL)
     {
         count++;
@@ -824,6 +832,10 @@ PLAYER *chargePlayerById(PLAYER *list, int id)
 
 //gestion des fins
 int checkGameOver(PLAYER *player) {
+    if(player==NULL){
+        printf("erreur de pointeur player dans checkGameOver\n");
+        return 10000;
+    }
 
     // FIN 1: Folie à 100 - Trump complètement fou
     if (player->gaugeMadness >= 100) {
@@ -858,6 +870,10 @@ int checkGameOver(PLAYER *player) {
 
 // Affiche le texte de fin correspondant au type de fin
 void displayEnding(PLAYER *player, int endingType) {
+    if(player==NULL){
+        printf("erreur de pointeur player dans displayEnding\n");
+        return;
+    }
     printf("\n");
     printf("===============================================\n");
     printf("           FIN DU MANDAT                       \n");
@@ -934,7 +950,10 @@ void displayEnding(PLAYER *player, int endingType) {
 
 // Sauvegarde TOUS les joueurs dans le fichier après chaque action
 void applyMidtermsConsequence(PLAYER *list, PLAYER *currentPlayer) {
-
+    if(currentPlayer==NULL){
+        printf("erreur de pointeur player dans applyMidtermsConsequence\n");
+        return;
+    }
     if (currentPlayer->temporality == 4) {
         printf("\nC'est votre 24eme mois !\n");
         printf("C'est l'heure Du Du Duuu !\n\n\n\n");
