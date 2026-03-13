@@ -106,7 +106,16 @@ int main(void)
         printMenu();
 
         scanf("%d", &choice);
+        if (scanf("%d", &choice) != 1)  // si ce n'est pas un entier
+    {
+        printf("\non t'as dit un nombre... c'est pas compliqué non ?\n\n");
 
+        // vider le buffer clavier
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF);
+
+        continue; // revenir au menu
+    }
         switch (choice)
         {
         case 1:
@@ -251,7 +260,7 @@ ACTION *recupererLigne(char *line)
     }
     memset(new,0,sizeof *new);
 
-    /* trim newline */
+    //remplace le \n par \0
     size_t len = strlen(line);
     if (len > 0 && line[len-1] == '\n')
         line[len-1] = '\0';
@@ -376,7 +385,7 @@ PLAYER *chargerJoueurTxt(char *nomFichier)
     return player;
 }
 
-/* Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure que le programme peut comprendre */
+//Converti la ligne du fichier stockant les joueurs ecrit en TXT en une structure 
 PLAYER *recupererLigneJoueur(char *line)
 {
     PLAYER *new = malloc(sizeof(PLAYER));
@@ -387,12 +396,12 @@ PLAYER *recupererLigneJoueur(char *line)
     }
     memset(new, 0, sizeof *new);
 
-    /* trim newline */
+    //remplace le \n par \0
     size_t len = strlen(line);
     if (len > 0 && line[len-1] == '\n')
         line[len-1] = '\0';
 
-    if (line[0] == '\0') { /* ligne vide */
+    if (line[0] == '\0') { 
         free(new);
         return NULL;
     }
@@ -439,7 +448,7 @@ PLAYER *recupererLigneJoueur(char *line)
     strncpy(new->password, token, 14);
     new->password[14] = '\0';
 
-    /* read progression fields if present, otherwise leave at 0 */
+    
     for(int i = 0; i < NB_MAX_ETAPES; ++i) {
         token = strtok(NULL, separator);
         if (token)
@@ -559,13 +568,7 @@ PLAYER *initializePlayer(char *nomFichier)
     // Nom = Trump pour tout le monde
     strcpy(new->lastName, "Trump");
 
-    //flemme mot de passe
-    // printf("Entrez un mot de passe (max 14 caracteres): ");
-    // fgets(new->password, 15, stdin);
-    // len = strlen(new->password);
-    // if (len > 0 && new->password[len-1] == '\n') {
-    //     new->password[len-1] = '\0';
-    // }
+  
 
     // Initialise les jauges
     new->gaugeSocial = START_GAUGE;
@@ -707,9 +710,9 @@ void vizualiseAction(ACTION *action) {
         return;
     }
 
-    printf("- - - - - - - - - - - - - - - - - - - - -\n");
+    printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
     printf("%s\n", action->description);
-    printf("- - - - - - - - - - - - - - - - - - - - -\n");
+    printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 
 
 }
@@ -725,7 +728,7 @@ void realizeAction(PLAYER *player, ACTION *action) {
     player->gaugeSocial += action->impSocial;
     player->gaugeEco += action->impEco;
     player->gaugeEnviro += action->impEnviro;
-    player->gaugeMadness + action->madness;
+    player->gaugeMadness += action->madness;
     player->temporality++;
 
     // Limite les jauges entre 0 et 100
@@ -993,7 +996,7 @@ void saveProgression(PLAYER *list, char *nomFichier)
 
     fclose(f);
 
-    printf("Progression sauvegardee!\n");
+    //printf("Progression sauvegardee!\n");
 }
 
 // GROSSE fonction qui gere tout le gameplay du jeu
